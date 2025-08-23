@@ -18,6 +18,16 @@ def initialize_firebase():
                     'databaseURL': database_url
                 })
                 print("Firebase initialized successfully with database URL")
+                
+                # Test the connection
+                try:
+                    test_ref = db.reference()
+                    test_ref.child('test').set({'test': 'connection'})
+                    test_ref.child('test').delete()
+                    print("Firebase connection test successful")
+                except Exception as test_error:
+                    print(f"Firebase connection test failed: {test_error}")
+                    return None
             else:
                 print("No Firebase database URL provided")
                 return None

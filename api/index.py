@@ -3,7 +3,7 @@ import json
 import requests
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from firebase_config import initialize_firebase, save_user_to_firebase, get_total_users, get_all_users
+from simple_user_tracker import initialize_storage, save_user_to_storage, get_total_users, get_all_users
 
 # Load environment variables
 load_dotenv()
@@ -15,8 +15,8 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
 ADMIN_USER_ID = os.getenv("ADMIN_USER_ID", "6995765141")
 
-# Initialize Firebase
-firebase_ref = initialize_firebase()
+# Initialize simple storage
+storage_ref = initialize_storage()
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -34,9 +34,9 @@ def webhook():
         text = message.get('text', '')
         user = message.get('from', {})
         
-        # Save user to Firebase if available
-        if firebase_ref and user:
-            save_user_to_firebase(user)
+        # Save user to storage if available
+        if storage_ref and user:
+            save_user_to_storage(user)
             # Notify admin of new user (if not admin themselves)
             if str(user.get('id')) != ADMIN_USER_ID:
                 notify_admin_new_user(user)
@@ -64,13 +64,13 @@ def webhook():
                     "⚠️ Note: Limited by remove.bg API usage"
                 )
             elif text == '/stats' and str(user.get('id')) == ADMIN_USER_ID:
-                if firebase_ref:
+                if storage_ref:
                     total_users = get_total_users()
-                    response_text = f"📊 **Bot Statistics**\n\n👥 **Total Users:** {total_users}\n\n🔥 **Firebase:** ✅ Connected"
+                    response_text = f"📊 **Bot Statistics**\n\n👥 **Total Users:** {total_users}\n\n💾 **Storage:** ✅ Connected"
                 else:
-                    response_text = "📊 **Bot Statistics**\n\n❌ **Firebase:** Not connected"
+                    response_text = "📊 **Bot Statistics**\n\n❌ **Storage:** Not connected"
             elif text == '/users' and str(user.get('id')) == ADMIN_USER_ID:
-                if firebase_ref:
+                if storage_ref:
                     users = get_all_users()
                     if users:
                         user_list = "\n".join([f"• {user_data.get('first_name', 'Unknown')} (@{user_data.get('username', 'no_username')})" for user_data in users.values()])
@@ -78,7 +78,7 @@ def webhook():
                     else:
                         response_text = "👥 **No users found**"
                 else:
-                    response_text = "❌ **Firebase:** Not connected"
+                    response_text = "❌ **Storage:** Not connected"
             else:
                 response_text = "📸 Please upload an image to remove its background!"
             
@@ -178,7 +178,7 @@ def send_photo(chat_id, photo_data, caption=""):
 def notify_admin_new_user(user):
     """Notify admin of new user registration"""
     try:
-        total_users = get_total_users() if firebase_ref else 0
+        total_users = get_total_users() if storage_ref else 0
         
         new_user_msg = (
             "➕ <b>New User Notification</b> ➕\n\n"
@@ -196,8 +196,8 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'firebase_connected': firebase_ref is not None,
-        'firebase_url': os.getenv("FIREBASE_DATABASE_URL", "Not set")
+        'storage_connected': storage_ref is not None,
+        'total_users': get_total_users() if storage_ref else 0
     })
 
 @app.route('/', methods=['GET'])
