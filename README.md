@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🤖 Telegram RemoveBG Bot
 
 A Telegram bot that removes the background from uploaded images using the [remove.bg API](https://www.remove.bg/api).
@@ -126,3 +127,7 @@ Your bot will automatically set the webhook when `USE_WEBHOOK=true`
 3. Upload an image
 4. Wait for processing
 5. Receive the image with background removed
+=======
+# removebg-telegram-bot
+Telegram bot that removes backgrounds using remove.bg API with Firebase integration
+>>>>>>> 57ebb1e522239deca160b7cd2f3fb868feb052f8

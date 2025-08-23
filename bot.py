@@ -86,8 +86,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     welcome_text = (
         f"👋 Hi {user.first_name}!\n\n"
-        "🤖 I'm your Background Remover Bot with enterprise features!\n"
-        "📸 Upload an image and I'll remove its background using remove.bg\n\n"
+        "🤖 I'm your Background Remover Bot\n"
+        "📸 Upload an image and I'll remove its background\n\n"
+        "Created with 💖 by Team A.co\n\n"
         "✨ Features:\n"
         "• Background removal\n"
         "• User analytics\n"
