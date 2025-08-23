@@ -13,10 +13,9 @@ def initialize_firebase():
             database_url = os.getenv("FIREBASE_DATABASE_URL")
             
             if database_url:
-                # Initialize Firebase with just the database URL for development
+                # Initialize Firebase with database URL only (for Vercel deployment)
                 firebase_admin.initialize_app({
-                    'databaseURL': database_url,
-                    'credential': firebase_admin.credentials.ApplicationDefault()
+                    'databaseURL': database_url
                 })
                 print("Firebase initialized successfully with database URL")
             else:
@@ -32,13 +31,27 @@ def save_user_to_firebase(user):
     """Save user data to Firebase"""
     try:
         ref = db.reference('users')
+        
+        # Handle both user objects and dictionaries
+        if hasattr(user, 'id'):
+            # User object (from bot.py)
+            user_id = user.id
+            first_name = user.first_name or ""
+            username = user.username or ""
+        else:
+            # Dictionary (from webhook handler)
+            user_id = user.get('id')
+            first_name = user.get('first_name', '')
+            username = user.get('username', '')
+        
         user_data = {
-            'id': user.id,
-            'first_name': user.first_name or "",
-            'username': user.username or "",
+            'id': user_id,
+            'first_name': first_name,
+            'username': username,
             'timestamp': firebase_admin.db.ServerValue.TIMESTAMP
         }
-        ref.child(str(user.id)).set(user_data)
+        ref.child(str(user_id)).set(user_data)
+        print(f"User saved to Firebase: {first_name} (ID: {user_id})")
         return True
     except Exception as e:
         print(f"Error saving user to Firebase: {e}")
