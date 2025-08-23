@@ -1,22 +1,20 @@
+import sys
 import os
-import json
-import requests
-from flask import Flask, request, jsonify
-from dotenv import load_dotenv
-from simple_user_tracker import initialize_storage, save_user_to_storage, get_total_users, get_all_users
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load environment variables
-load_dotenv()
+from flask import Flask, request, jsonify
+from config import Config
+from src.storage import storage
+from src.telegram_api import telegram_api
+from src.image_processor import image_processor
+
+# Initialize configuration
+Config.validate()
 
 app = Flask(__name__)
 
-# Bot configuration
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
-ADMIN_USER_ID = os.getenv("ADMIN_USER_ID", "6995765141")
-
-# Initialize simple storage
-storage_ref = initialize_storage()
+# Initialize storage
+storage_ref = storage.initialize()
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -36,9 +34,9 @@ def webhook():
         
         # Save user to storage if available
         if storage_ref and user:
-            save_user_to_storage(user)
+            storage.save_user(user)
             # Notify admin of new user (if not admin themselves)
-            if str(user.get('id')) != ADMIN_USER_ID:
+            if str(user.get('id')) != Config.ADMIN_USER_ID:
                 notify_admin_new_user(user)
         
         # Handle different types of messages
@@ -63,15 +61,15 @@ def webhook():
                     "3️⃣ You'll get back the image with no background\n\n"
                     "⚠️ Note: Limited by remove.bg API usage"
                 )
-            elif text == '/stats' and str(user.get('id')) == ADMIN_USER_ID:
+            elif text == '/stats' and str(user.get('id')) == Config.ADMIN_USER_ID:
                 if storage_ref:
-                    total_users = get_total_users()
+                    total_users = storage.get_total_users()
                     response_text = f"📊 **Bot Statistics**\n\n👥 **Total Users:** {total_users}\n\n💾 **Storage:** ✅ Connected"
                 else:
                     response_text = "📊 **Bot Statistics**\n\n❌ **Storage:** Not connected"
-            elif text == '/users' and str(user.get('id')) == ADMIN_USER_ID:
+            elif text == '/users' and str(user.get('id')) == Config.ADMIN_USER_ID:
                 if storage_ref:
-                    users = get_all_users()
+                    users = storage.get_all_users()
                     if users:
                         user_list = "\n".join([f"• {user_data.get('first_name', 'Unknown')} (@{user_data.get('username', 'no_username')})" for user_data in users.values()])
                         response_text = f"👥 **All Users ({len(users)}):**\n\n{user_list}"
@@ -83,21 +81,15 @@ def webhook():
                 response_text = "📸 Please upload an image to remove its background!"
             
             # Send response
-            send_message(chat_id, response_text)
+            telegram_api.send_message(chat_id, response_text)
         
         # Handle photo messages
         elif message.get('photo'):
             photo = message['photo'][-1]  # Get the largest photo
             file_id = photo['file_id']
             
-            # Get file path
-            file_info = get_file(file_id)
-            if file_info:
-                file_path = file_info['file_path']
-                # Download and process image
-                process_image(chat_id, file_path)
-            else:
-                send_message(chat_id, "❌ Failed to get image file")
+            # Process image using the image processor
+            image_processor.process_telegram_image(file_id, chat_id)
         
         return jsonify({'status': 'ok'})
         
@@ -105,80 +97,10 @@ def webhook():
         print(f"Webhook error: {e}")
         return jsonify({'error': str(e)}), 500
 
-def send_message(chat_id, text):
-    """Send a message to a chat"""
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    data = {
-        'chat_id': chat_id,
-        'text': text,
-        'parse_mode': 'HTML'
-    }
-    try:
-        response = requests.post(url, json=data)
-        return response.json()
-    except Exception as e:
-        print(f"Error sending message: {e}")
-        return None
-
-def get_file(file_id):
-    """Get file information from Telegram"""
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile"
-    data = {'file_id': file_id}
-    try:
-        response = requests.post(url, json=data)
-        result = response.json()
-        if result.get('ok'):
-            return result['result']
-        return None
-    except Exception as e:
-        print(f"Error getting file: {e}")
-        return None
-
-def process_image(chat_id, file_path):
-    """Process image with remove.bg API"""
-    try:
-        # Download image from Telegram
-        file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
-        image_response = requests.get(file_url)
-        
-        if image_response.status_code != 200:
-            send_message(chat_id, "❌ Failed to download image")
-            return
-        
-        # Send to remove.bg API
-        remove_bg_url = "https://api.remove.bg/v1.0/removebg"
-        headers = {"X-Api-Key": REMOVE_BG_API_KEY}
-        files = {"image_file": image_response.content}
-        
-        response = requests.post(remove_bg_url, headers=headers, files=files)
-        
-        if response.status_code == 200:
-            # Send processed image back
-            send_photo(chat_id, response.content, "✅ Background removed successfully!")
-        else:
-            send_message(chat_id, f"❌ Failed to process image. Error: {response.status_code}")
-            
-    except Exception as e:
-        print(f"Error processing image: {e}")
-        send_message(chat_id, "❌ Error processing image")
-
-def send_photo(chat_id, photo_data, caption=""):
-    """Send a photo to a chat"""
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-    files = {'photo': ('image.png', photo_data, 'image/png')}
-    data = {'chat_id': chat_id, 'caption': caption}
-    
-    try:
-        response = requests.post(url, files=files, data=data)
-        return response.json()
-    except Exception as e:
-        print(f"Error sending photo: {e}")
-        return None
-
 def notify_admin_new_user(user):
     """Notify admin of new user registration"""
     try:
-        total_users = get_total_users() if storage_ref else 0
+        total_users = storage.get_total_users() if storage_ref else 0
         
         new_user_msg = (
             "➕ <b>New User Notification</b> ➕\n\n"
@@ -187,7 +109,7 @@ def notify_admin_new_user(user):
             f"🌝 <b>Total Users Count: {total_users}</b>"
         )
         
-        send_message(ADMIN_USER_ID, new_user_msg)
+        telegram_api.send_message(Config.ADMIN_USER_ID, new_user_msg)
     except Exception as e:
         print(f"Failed to notify admin: {e}")
 
@@ -197,7 +119,9 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'storage_connected': storage_ref is not None,
-        'total_users': get_total_users() if storage_ref else 0
+        'total_users': storage.get_total_users() if storage_ref else 0,
+        'bot_version': Config.BOT_VERSION,
+        'bot_name': Config.BOT_NAME
     })
 
 @app.route('/', methods=['GET'])

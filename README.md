@@ -1,23 +1,39 @@
-<<<<<<< HEAD
-# 🤖 Telegram RemoveBG Bot
+# 🤖 Telegram Background Remover Bot
 
-A Telegram bot that removes the background from uploaded images using the [remove.bg API](https://www.remove.bg/api).
+A professional Telegram bot that removes backgrounds from images using AI-powered APIs.
 
-## ✨ Features
-- **Background Removal**: Removes background from uploaded photos using remove.bg API
-- **Interactive Menu**: User-friendly interface with keyboard shortcuts
-- **User Management**: Firebase integration for user analytics and tracking
-- **Admin Panel**: Advanced controls for bot administrators
-- **Broadcast System**: Send messages to all users
-- **Webhook Support**: Real-time updates with optional webhook mode
-- **Statistics**: Track user count and bot usage
-- **Error Handling**: Comprehensive error handling and logging
+## 🚀 Features
+
+- **Background Removal**: Remove backgrounds from images using remove.bg API
+- **User Analytics**: Track user interactions and statistics
+- **Admin Controls**: Admin panel with user management and statistics
+- **Webhook Support**: Real-time message processing
+- **Professional Architecture**: Modular, scalable codebase
+- **Production Ready**: Deployed on Vercel with 24/7 uptime
+
+## 📁 Project Structure
+
+```
+removebg-telegram-bot/
+├── api/
+│   └── index.py              # Vercel serverless function entry point
+├── src/
+│   ├── __init__.py           # Package initialization
+│   ├── storage.py            # User data storage system
+│   ├── telegram_api.py       # Telegram API wrapper
+│   └── image_processor.py    # Image processing operations
+├── config.py                 # Centralized configuration
+├── requirements.txt          # Python dependencies
+├── vercel.json              # Vercel deployment configuration
+├── .env.example             # Environment variables template
+└── README.md                # Project documentation
+```
 
 ## 🛠 Setup
 
-### 1. Clone the repo
+### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/removebg-telegram-bot.git
+git clone https://github.com/azadmohanty/removebg-telegram-bot.git
 cd removebg-telegram-bot
 ```
 
@@ -43,13 +59,9 @@ REMOVE_BG_API_KEY=your_removebg_api_key_here
 # Admin Configuration
 ADMIN_USER_ID=your_telegram_user_id_here
 
-# Firebase Configuration (Optional - for user management)
-FIREBASE_DATABASE_URL=https://your-project.firebaseio.com/
-FIREBASE_SERVICE_ACCOUNT_PATH=path/to/serviceAccountKey.json
-
-# Webhook Configuration (Optional - for production)
-USE_WEBHOOK=false
-WEBHOOK_URL=https://your-domain.com
+# Webhook Configuration (for production)
+USE_WEBHOOK=true
+WEBHOOK_URL=https://your-domain.com/webhook
 SECRET_KEY=your_secret_key_here
 ```
 
@@ -57,77 +69,111 @@ SECRET_KEY=your_secret_key_here
 - **TELEGRAM_BOT_TOKEN**: Get from [@BotFather](https://t.me/botfather)
 - **REMOVE_BG_API_KEY**: Get from [remove.bg](https://www.remove.bg/api)
 - **ADMIN_USER_ID**: Your Telegram user ID (use [@userinfobot](https://t.me/userinfobot))
-- **FIREBASE_DATABASE_URL**: Your Firebase project URL (optional)
-- **USE_WEBHOOK**: Set to `true` for production, `false` for development
-
-### 4. Run the bot
-```bash
-python bot.py
-```
 
 ## 👑 Admin Features
 
 ### Commands
 - `/stats` - View bot statistics and user count
-- `/broadcast` - Send message to all users
 - `/users` - List all registered users
 - `/help` - Show help menu
 
-### Admin Panel
-Access the admin panel through the "Admin Panel" button in the main menu (admin users only).
+### Admin Notifications
+- Automatic notifications when new users join
+- Real-time user count updates
+- User activity tracking
 
-## 🔥 Firebase Integration
+## 🏗 Architecture
 
-The bot automatically saves user information to Firebase when they start the bot:
-- User ID, name, and username
-- Registration timestamp
-- Total user count tracking
+### Modular Design
+- **`config.py`**: Centralized configuration management
+- **`src/storage.py`**: User data storage and management
+- **`src/telegram_api.py`**: Telegram API interactions
+- **`src/image_processor.py`**: Image processing operations
+- **`api/index.py`**: Webhook handler for Vercel deployment
 
-## 🌐 Webhook Mode
+### Key Benefits
+- ✅ **Separation of Concerns**: Each module has a specific responsibility
+- ✅ **Maintainability**: Easy to modify and extend
+- ✅ **Testability**: Modular code is easier to test
+- ✅ **Scalability**: Can easily add new features
+- ✅ **Professional**: Industry-standard project structure
 
-For production deployment, enable webhook mode:
-1. Set `USE_WEBHOOK=true` in your `.env` file
-2. Set `WEBHOOK_URL` to your Vercel domain
-3. Deploy to Vercel (instructions below)
-4. The bot will use webhooks instead of polling for real-time updates
+## 🚀 Deploy to Vercel
 
-## 🚀 **Deploy to Vercel**
-
-### **Step 1: Push to GitHub**
+### Step 1: Push to GitHub
 ```bash
 git init
 git add .
-git commit -m "Initial commit: Telegram Background Remover Bot"
+git commit -m "Initial commit: Professional Telegram Background Remover Bot"
 git branch -M main
 git remote add origin https://github.com/your-username/removebg-telegram-bot.git
 git push -u origin main
 ```
 
-### **Step 2: Deploy to Vercel**
-1. **Install Vercel CLI**: `npm i -g vercel`
-2. **Login to Vercel**: `vercel login`
-3. **Deploy**: `vercel --prod`
-4. **Get your domain** (e.g., `https://your-bot.vercel.app`)
+### Step 2: Deploy to Vercel
+1. Go to [vercel.com](https://vercel.com) and sign up/login
+2. Click "New Project"
+3. Import your GitHub repository
+4. Configure environment variables in Vercel dashboard
+5. Deploy!
 
-### **Step 3: Configure Webhook**
-1. **Update your `.env` file**:
-   ```env
-   USE_WEBHOOK=true
-   WEBHOOK_URL=https://your-bot.vercel.app
-   ```
-2. **Restart your bot**: `python bot.py`
+### Step 3: Set up Webhook
+After deployment, set the webhook URL:
+```bash
+curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://your-vercel-domain.vercel.app/webhook"}'
+```
 
-### **Step 4: Set Telegram Webhook**
-Your bot will automatically set the webhook when `USE_WEBHOOK=true`
+## 📊 Monitoring
 
-## 📱 Usage
+### Health Check
+Monitor your bot's health:
+```
+GET https://your-vercel-domain.vercel.app/health
+```
 
-1. Start the bot with `/start`
-2. Choose "Remove Background" from the menu
-3. Upload an image
-4. Wait for processing
-5. Receive the image with background removed
-=======
-# removebg-telegram-bot
-Telegram bot that removes backgrounds using remove.bg API with Firebase integration
->>>>>>> 57ebb1e522239deca160b7cd2f3fb868feb052f8
+Response:
+```json
+{
+  "status": "healthy",
+  "storage_connected": true,
+  "total_users": 42,
+  "bot_version": "1.0.0",
+  "bot_name": "Background Remover Bot"
+}
+```
+
+## 🔧 Development
+
+### Local Development
+For local development, you can run the bot in polling mode:
+```bash
+python -m src.bot
+```
+
+### Adding New Features
+1. Create new modules in the `src/` directory
+2. Update `config.py` for new configuration options
+3. Import and use in `api/index.py`
+4. Test thoroughly before deployment
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📞 Support
+
+For support, please open an issue on GitHub or contact the development team.
+
+---
+
+**Created with 💖 by Team A.co**
