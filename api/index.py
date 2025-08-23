@@ -3,6 +3,7 @@ import json
 import requests
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from firebase_config import initialize_firebase, save_user_to_firebase, get_total_users, get_all_users
 
 # Load environment variables
 load_dotenv()
@@ -13,6 +14,9 @@ app = Flask(__name__)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
 ADMIN_USER_ID = os.getenv("ADMIN_USER_ID", "6995765141")
+
+# Initialize Firebase
+firebase_ref = initialize_firebase()
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -29,6 +33,10 @@ def webhook():
         chat_id = message.get('chat', {}).get('id')
         text = message.get('text', '')
         user = message.get('from', {})
+        
+        # Save user to Firebase if available
+        if firebase_ref and user:
+            save_user_to_firebase(user)
         
         # Handle different types of messages
         if text:
@@ -53,7 +61,21 @@ def webhook():
                     "⚠️ Note: Limited by remove.bg API usage"
                 )
             elif text == '/stats' and str(user.get('id')) == ADMIN_USER_ID:
-                response_text = "📊 Admin stats feature coming soon!"
+                if firebase_ref:
+                    total_users = get_total_users()
+                    response_text = f"📊 **Bot Statistics**\n\n👥 **Total Users:** {total_users}\n\n🔥 **Firebase:** ✅ Connected"
+                else:
+                    response_text = "📊 **Bot Statistics**\n\n❌ **Firebase:** Not connected"
+            elif text == '/users' and str(user.get('id')) == ADMIN_USER_ID:
+                if firebase_ref:
+                    users = get_all_users()
+                    if users:
+                        user_list = "\n".join([f"• {user_data.get('first_name', 'Unknown')} (@{user_data.get('username', 'no_username')})" for user_data in users.values()])
+                        response_text = f"👥 **All Users ({len(users)}):**\n\n{user_list}"
+                    else:
+                        response_text = "👥 **No users found**"
+                else:
+                    response_text = "❌ **Firebase:** Not connected"
             else:
                 response_text = "📸 Please upload an image to remove its background!"
             
