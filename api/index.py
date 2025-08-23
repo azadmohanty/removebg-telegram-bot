@@ -37,6 +37,9 @@ def webhook():
         # Save user to Firebase if available
         if firebase_ref and user:
             save_user_to_firebase(user)
+            # Notify admin of new user (if not admin themselves)
+            if str(user.get('id')) != ADMIN_USER_ID:
+                notify_admin_new_user(user)
         
         # Handle different types of messages
         if text:
@@ -172,10 +175,30 @@ def send_photo(chat_id, photo_data, caption=""):
         print(f"Error sending photo: {e}")
         return None
 
+def notify_admin_new_user(user):
+    """Notify admin of new user registration"""
+    try:
+        total_users = get_total_users() if firebase_ref else 0
+        
+        new_user_msg = (
+            "➕ <b>New User Notification</b> ➕\n\n"
+            f"👤<b>User:</b> <a href='tg://user?id={user.get('id')}'>{user.get('first_name', 'Unknown')}</a>\n\n"
+            f"🆔<b>User ID:</b> <code>{user.get('id')}</code>\n\n"
+            f"🌝 <b>Total Users Count: {total_users}</b>"
+        )
+        
+        send_message(ADMIN_USER_ID, new_user_msg)
+    except Exception as e:
+        print(f"Failed to notify admin: {e}")
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy'})
+    return jsonify({
+        'status': 'healthy',
+        'firebase_connected': firebase_ref is not None,
+        'firebase_url': os.getenv("FIREBASE_DATABASE_URL", "Not set")
+    })
 
 @app.route('/', methods=['GET'])
 def home():
