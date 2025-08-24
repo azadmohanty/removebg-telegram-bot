@@ -53,8 +53,25 @@ class ImageProcessor:
                 telegram_api.send_message(chat_id, "❌ Failed to process image")
                 return False
             
-            # Send processed image back
-            telegram_api.send_photo(chat_id, processed_image, "✅ Background removed successfully!")
+            # Create developer button keyboard
+            developer_keyboard = telegram_api.create_inline_keyboard([
+                [
+                    {'text': '👨‍💻 Developer', 'callback_data': 'developer_info'},
+                    {'text': '⭐ Rate Bot', 'callback_data': 'rate_bot'}
+                ],
+                [
+                    {'text': '🔄 Remove Another', 'callback_data': 'remove_another'},
+                    {'text': 'ℹ️ Help', 'callback_data': 'help'}
+                ]
+            ])
+            
+            # Send processed image back with developer buttons
+            telegram_api.send_photo(
+                chat_id, 
+                processed_image, 
+                "✅ Background removed successfully!\n\nWith love from A.co",
+                reply_markup=developer_keyboard
+            )
             return True
             
         except Exception as e:

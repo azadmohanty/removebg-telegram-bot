@@ -5,9 +5,10 @@ A professional Telegram bot that removes backgrounds from images using AI-powere
 ## 🚀 Features
 
 - **Background Removal**: Remove backgrounds from images using remove.bg API
-- **User Analytics**: Track user interactions and statistics
+- **User Analytics**: Track user interactions and statistics using Firebase REST API
 - **Admin Controls**: Admin panel with user management and statistics
 - **Webhook Support**: Real-time message processing
+- **Firebase Integration**: Seamless user data persistence (no authentication required)
 - **Professional Architecture**: Modular, scalable codebase
 - **Production Ready**: Deployed on Vercel with 24/7 uptime
 
@@ -19,7 +20,8 @@ removebg-telegram-bot/
 │   └── index.py              # Vercel serverless function entry point
 ├── src/
 │   ├── __init__.py           # Package initialization
-│   ├── storage.py            # User data storage system
+│   ├── storage.py            # User data storage system with Firebase REST API
+│   ├── firebase_rest.py      # Firebase REST API client
 │   ├── telegram_api.py       # Telegram API wrapper
 │   └── image_processor.py    # Image processing operations
 ├── config.py                 # Centralized configuration
@@ -59,6 +61,9 @@ REMOVE_BG_API_KEY=your_removebg_api_key_here
 # Admin Configuration
 ADMIN_USER_ID=your_telegram_user_id_here
 
+# Firebase Configuration (REST API - no authentication required)
+FIREBASE_DATABASE_URL=https://removebg-bot-telegram-default-rtdb.firebaseio.com
+
 # Webhook Configuration (for production)
 USE_WEBHOOK=true
 WEBHOOK_URL=https://your-domain.com/webhook
@@ -73,14 +78,28 @@ SECRET_KEY=your_secret_key_here
 ## 👑 Admin Features
 
 ### Commands
-- `/stats` - View bot statistics and user count
-- `/users` - List all registered users
+- `/start` - Show welcome message and admin panel (if admin)
 - `/help` - Show help menu
+- `/stats` - View bot statistics and user count (admin only)
+- `/users` - List all registered users (admin only)
+- `/admin` - Show admin control panel with inline keyboard (admin only)
 
 ### Admin Notifications
 - Automatic notifications when new users join
 - Real-time user count updates
 - User activity tracking
+
+### Inline Keyboard Interface
+- **Beautiful Button Layout**: Admin commands displayed as clickable buttons
+- **Easy Navigation**: One-click access to statistics, user lists, and help
+- **Back Navigation**: Seamless navigation between different admin panels
+- **Mobile Friendly**: Optimized for both desktop and mobile Telegram clients
+
+### User Experience Features
+- **Developer Button**: Appears after image processing with contact info and GitHub link
+- **Rate Bot Button**: Easy way for users to rate and review the bot
+- **Remove Another Button**: Quick access to process more images
+- **Smart Help System**: Context-aware help with appropriate back navigation
 
 ## 🏗 Architecture
 
@@ -97,6 +116,26 @@ SECRET_KEY=your_secret_key_here
 - ✅ **Testability**: Modular code is easier to test
 - ✅ **Scalability**: Can easily add new features
 - ✅ **Professional**: Industry-standard project structure
+
+## 🔥 Firebase Integration
+
+### How It Works
+- **REST API**: Uses Firebase REST API directly (no Admin SDK required)
+- **No Authentication**: Works with public Firebase databases
+- **Automatic Fallback**: Falls back to in-memory storage if Firebase is unavailable
+- **Real-time Updates**: Instant user tracking and analytics
+
+### Benefits
+- ✅ **No Setup Complexity**: Works immediately with your Firebase URL
+- ✅ **Reliable**: Built-in fallback system ensures bot always works
+- ✅ **Scalable**: Can handle thousands of users
+- ✅ **Real-time**: Instant user statistics and admin notifications
+
+### Testing Firebase
+Run the test script to verify Firebase integration:
+```bash
+python test_firebase_rest.py
+```
 
 ## 🚀 Deploy to Vercel
 
