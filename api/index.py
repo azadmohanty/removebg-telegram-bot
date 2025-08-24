@@ -400,6 +400,34 @@ def test():
             'timestamp': datetime.now().isoformat()
         }), 500
 
+@app.route('/webhook-status', methods=['GET'])
+def webhook_status():
+    """Check webhook status with Telegram"""
+    try:
+        import requests
+        
+        # Get webhook info from Telegram
+        webhook_url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/getWebhookInfo"
+        response = requests.get(webhook_url)
+        webhook_info = response.json()
+        
+        # Get bot info
+        bot_info = telegram_api.get_me()
+        
+        return jsonify({
+            'status': 'Webhook Status Check',
+            'webhook_info': webhook_info,
+            'bot_info': bot_info,
+            'configured_webhook_url': Config.WEBHOOK_URL,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'Error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 @app.route('/', methods=['GET'])
 def home():
     """Home endpoint"""
