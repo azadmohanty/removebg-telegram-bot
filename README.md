@@ -17,19 +17,14 @@ A professional Telegram bot that removes backgrounds from images using AI-powere
 ```
 removebg-telegram-bot/
 ├── api/
-│   └── index.py              # Vercel serverless function entry point
-├── src/
-│   ├── __init__.py           # Package initialization
-│   ├── storage.py            # User data storage system with Firebase REST API
-│   ├── firebase_rest.py      # Firebase REST API client
-│   ├── telegram_api.py       # Telegram API wrapper
-│   └── image_processor.py    # Image processing operations
-├── config.py                 # Centralized configuration
+│   └── index.py              # Vercel serverless function entry point (all-in-one)
 ├── requirements.txt          # Python dependencies
 ├── vercel.json              # Vercel deployment configuration
 ├── .env.example             # Environment variables template
 └── README.md                # Project documentation
 ```
+
+**Note:** This bot uses a simplified, single-file architecture for maximum reliability and easy deployment on Vercel.
 
 ## 🛠 Setup
 
@@ -103,19 +98,17 @@ SECRET_KEY=your_secret_key_here
 
 ## 🏗 Architecture
 
-### Modular Design
-- **`config.py`**: Centralized configuration management
-- **`src/storage.py`**: User data storage and management
-- **`src/telegram_api.py`**: Telegram API interactions
-- **`src/image_processor.py`**: Image processing operations
-- **`api/index.py`**: Webhook handler for Vercel deployment
+### Simplified Design
+- **`api/index.py`**: All-in-one webhook handler with inline functions
+- **No external dependencies**: All functionality contained in one file
+- **Direct API calls**: Uses `requests` library for all external APIs
 
 ### Key Benefits
-- ✅ **Separation of Concerns**: Each module has a specific responsibility
-- ✅ **Maintainability**: Easy to modify and extend
-- ✅ **Testability**: Modular code is easier to test
-- ✅ **Scalability**: Can easily add new features
-- ✅ **Professional**: Industry-standard project structure
+- ✅ **Maximum Reliability**: No circular import issues or complex dependencies
+- ✅ **Easy Deployment**: Single file deployment on Vercel
+- ✅ **Easy Debugging**: All code in one place for quick troubleshooting
+- ✅ **Fast Execution**: No module loading overhead
+- ✅ **Production Ready**: Proven to work reliably on Vercel
 
 ## 🔥 Firebase Integration
 
@@ -132,10 +125,7 @@ SECRET_KEY=your_secret_key_here
 - ✅ **Real-time**: Instant user statistics and admin notifications
 
 ### Testing Firebase
-Run the test script to verify Firebase integration:
-```bash
-python test_firebase_rest.py
-```
+The bot automatically tests Firebase connection on startup and provides status in admin commands.
 
 ## 🚀 Deploy to Vercel
 
@@ -186,16 +176,16 @@ Response:
 ## 🔧 Development
 
 ### Local Development
-For local development, you can run the bot in polling mode:
+For local development, you can run the bot directly:
 ```bash
-python -m src.bot
+python api/index.py
 ```
 
 ### Adding New Features
-1. Create new modules in the `src/` directory
-2. Update `config.py` for new configuration options
-3. Import and use in `api/index.py`
-4. Test thoroughly before deployment
+1. Add new functions directly to `api/index.py`
+2. Update environment variables as needed
+3. Test thoroughly before deployment
+4. Keep the single-file architecture for maximum reliability
 
 ## 📝 License
 

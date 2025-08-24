@@ -226,6 +226,26 @@ def get_all_users():
     except:
         return {}
 
+def notify_admin_new_user(user):
+    """Notify admin of new user registration"""
+    try:
+        total_users = get_total_users()
+        storage_status = get_storage_status()
+        
+        new_user_msg = (
+            "🆕 <b>New User Joined!</b> 🆕\n\n"
+            f"👤<b>User:</b> <a href='tg://user?id={user.get('id')}'>{user.get('first_name', 'Unknown')}</a>\n"
+            f"📝<b>Username:</b> @{user.get('username', 'no_username')}\n\n"
+            f"🆔<b>User ID:</b> <code>{user.get('id')}</code>\n\n"
+            f"📊 <b>Total Users:</b> {total_users}\n"
+            f"💾 <b>Storage:</b> {storage_status['storage_type']}\n\n"
+            f"⏰ <b>Joined:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        
+        send_message(ADMIN_USER_ID, new_user_msg)
+    except Exception as e:
+        print(f"Failed to notify admin: {e}")
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     """Handle incoming webhook from Telegram"""
@@ -307,6 +327,7 @@ def webhook():
                     "3️⃣ You'll get back the image with no background\n\n"
                     "⚠️ Note: Limited by remove.bg API usage"
                 )
+                send_message(chat_id, response_text)
             elif text == '/stats' and str(user.get('id')) == ADMIN_USER_ID:
                 storage_status = get_storage_status()
                 total_users = storage_status['total_users']
@@ -319,6 +340,7 @@ def webhook():
                     f"💾 **Storage:** {firebase_status}\n"
                     f"🔧 **Type:** {storage_type}"
                 )
+                send_message(chat_id, response_text)
             elif text == '/users' and str(user.get('id')) == ADMIN_USER_ID:
                 response_text = get_admin_users()
                 send_message(chat_id, response_text)
@@ -613,26 +635,6 @@ def handle_callback_query(callback_query):
         except:
             pass
 
-def notify_admin_new_user(user):
-    """Notify admin of new user registration"""
-    try:
-        total_users = get_total_users()
-        storage_status = get_storage_status()
-        
-        new_user_msg = (
-            "🆕 <b>New User Joined!</b> 🆕\n\n"
-            f"👤<b>User:</b> <a href='tg://user?id={user.get('id')}'>{user.get('first_name', 'Unknown')}</a>\n"
-            f"📝<b>Username:</b> @{user.get('username', 'no_username')}\n\n"
-            f"🆔<b>User ID:</b> <code>{user.get('id')}</code>\n\n"
-            f"📊 <b>Total Users:</b> {total_users}\n"
-            f"💾 <b>Storage:</b> {storage_status['storage_type']}\n\n"
-            f"⏰ <b>Joined:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-        
-        send_message(ADMIN_USER_ID, new_user_msg)
-    except Exception as e:
-        print(f"Failed to notify admin: {e}")
-
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -685,8 +687,6 @@ def test():
 def webhook_status():
     """Check webhook status with Telegram"""
     try:
-        import requests
-        
         # Get webhook info from Telegram
         webhook_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getWebhookInfo"
         response = requests.get(webhook_url)
