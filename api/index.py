@@ -120,9 +120,7 @@ def webhook():
                 telegram_api.send_message(chat_id, response_text, reply_markup=admin_keyboard)
             else:
                 response_text = "📸 Please upload an image to remove its background!"
-            
-            # Send response
-            telegram_api.send_message(chat_id, response_text)
+                telegram_api.send_message(chat_id, response_text)
         
         # Handle photo messages
         elif message.get('photo'):
