@@ -357,71 +357,69 @@ def webhook():
                 if not file_info:
                     print(f"Failed to get file info for file_id: {file_id}")
                     send_message(chat_id, "❌ Failed to get image file")
-                    return jsonify({'status': 'ok'})
-                
-                print(f"Got file info: {file_info}")
-                
-                # Download image
-                print(f"Step 2 - Downloading image...")
-                image_data = download_file(file_info['file_path'])
-                if not image_data:
-                    print(f"Failed to download file from path: {file_info['file_path']}")
-                    send_message(chat_id, "❌ Failed to download image")
-                    return jsonify({'status': 'ok'})
-                
-                print(f"Downloaded image, size: {len(image_data)} bytes")
-                
-                # Remove background
-                print(f"Step 3 - Sending to remove.bg API...")
-                try:
-                    processed_image = remove_background(image_data)
-                    if not processed_image:
-                        print(f"Failed to process image with remove.bg API")
-                        send_message(chat_id, "❌ Failed to process image with remove.bg API")
-                        return jsonify({'status': 'ok'})
-                    print(f"Background removed successfully, processed size: {len(processed_image)} bytes")
-                except Exception as e:
-                    print(f"Error in remove.bg API call: {e}")
-                    send_message(chat_id, f"❌ Error calling remove.bg API: {str(e)}")
-                    return jsonify({'status': 'ok'})
-                
-                # Create developer button keyboard
-                print(f"Step 4 - Creating keyboard...")
-                try:
-                    developer_keyboard = create_inline_keyboard([
-                        [
-                            {'text': '👨‍💻 Developer', 'callback_data': 'developer_info'},
-                            {'text': '⭐ Rate Bot', 'callback_data': 'rate_bot'}
-                        ],
-                        [
-                            {'text': '🔄 Remove Another', 'callback_data': 'remove_another'},
-                            {'text': 'ℹ️ Help', 'callback_data': 'help'}
-                        ]
-                    ])
-                    print(f"Keyboard created successfully")
-                except Exception as e:
-                    print(f"Error creating keyboard: {e}")
-                    developer_keyboard = None
-                
-                # Send processed image back with developer buttons
-                print(f"Step 5 - Sending processed image back to chat {chat_id}")
-                try:
-                    result = send_photo(
-                        chat_id, 
-                        processed_image, 
-                        "✅ Background removed successfully!\n\nWith love from A.co",
-                        reply_markup=developer_keyboard
-                    )
+                else:
+                    print(f"Got file info: {file_info}")
                     
-                    if result:
-                        print(f"Image sent successfully to chat {chat_id}")
+                    # Download image
+                    print(f"Step 2 - Downloading image...")
+                    image_data = download_file(file_info['file_path'])
+                    if not image_data:
+                        print(f"Failed to download file from path: {file_info['file_path']}")
+                        send_message(chat_id, "❌ Failed to download image")
                     else:
-                        print(f"Failed to send image to chat {chat_id}")
-                        send_message(chat_id, "❌ Failed to send processed image")
+                        print(f"Downloaded image, size: {len(image_data)} bytes")
                         
-                except Exception as e:
-                    print(f"Error sending photo: {e}")
-                    send_message(chat_id, f"❌ Error sending processed image: {str(e)}")
+                        # Remove background
+                        print(f"Step 3 - Sending to remove.bg API...")
+                        try:
+                            processed_image = remove_background(image_data)
+                            if not processed_image:
+                                print(f"Failed to process image with remove.bg API")
+                                send_message(chat_id, "❌ Failed to process image with remove.bg API")
+                            else:
+                                print(f"Background removed successfully, processed size: {len(processed_image)} bytes")
+                                
+                                # Create developer button keyboard
+                                print(f"Step 4 - Creating keyboard...")
+                                try:
+                                    developer_keyboard = create_inline_keyboard([
+                                        [
+                                            {'text': '👨‍💻 Developer', 'callback_data': 'developer_info'},
+                                            {'text': '⭐ Rate Bot', 'callback_data': 'rate_bot'}
+                                        ],
+                                        [
+                                            {'text': '🔄 Remove Another', 'callback_data': 'remove_another'},
+                                            {'text': 'ℹ️ Help', 'callback_data': 'help'}
+                                        ]
+                                    ])
+                                    print(f"Keyboard created successfully")
+                                except Exception as e:
+                                    print(f"Error creating keyboard: {e}")
+                                    developer_keyboard = None
+                                
+                                # Send processed image back with developer buttons
+                                print(f"Step 5 - Sending processed image back to chat {chat_id}")
+                                try:
+                                    result = send_photo(
+                                        chat_id, 
+                                        processed_image, 
+                                        "✅ Background removed successfully!\n\nWith love from A.co",
+                                        reply_markup=developer_keyboard
+                                    )
+                                    
+                                    if result:
+                                        print(f"Image sent successfully to chat {chat_id}")
+                                    else:
+                                        print(f"Failed to send image to chat {chat_id}")
+                                        send_message(chat_id, "❌ Failed to send processed image")
+                                        
+                                except Exception as e:
+                                    print(f"Error sending photo: {e}")
+                                    send_message(chat_id, f"❌ Error sending processed image: {str(e)}")
+                                    
+                        except Exception as e:
+                            print(f"Error in remove.bg API call: {e}")
+                            send_message(chat_id, f"❌ Error calling remove.bg API: {str(e)}")
                     
             except Exception as e:
                 print(f"Error processing photo: {e}")
@@ -645,8 +643,8 @@ def health_check():
         'fallback_active': storage_status['fallback_active'],
         'storage_type': storage_status['storage_type'],
         'total_users': storage_status['total_users'],
-        'bot_version': Config.BOT_VERSION,
-        'bot_name': Config.BOT_NAME
+        'bot_version': '1.0.0',
+        'bot_name': 'Background Remover Bot'
     })
 
 @app.route('/test', methods=['GET'])
@@ -701,7 +699,7 @@ def webhook_status():
             'status': 'Webhook Status Check',
             'webhook_info': webhook_info,
             'bot_info': bot_info,
-            'configured_webhook_url': Config.WEBHOOK_URL,
+            'configured_webhook_url': 'https://removebg-telegram-bot.vercel.app/webhook',
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
