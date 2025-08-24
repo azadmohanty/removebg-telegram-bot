@@ -54,7 +54,7 @@ class ImageProcessor:
                 return False
             
             # Send processed image back
-            telegram_api.send_photo(chat_id, processed_image, "✅ Background removed successfully!")
+            telegram_api.send_photo(chat_id, processed_image, "✅ Background removed successfully!""Created with 💖 by Team A.co")
             return True
             
         except Exception as e:
