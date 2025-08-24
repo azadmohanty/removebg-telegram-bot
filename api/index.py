@@ -133,23 +133,34 @@ def webhook():
         
         # Handle photo messages
         elif message.get('photo'):
-            photo = message['photo'][-1]  # Get the largest photo
-            file_id = photo['file_id']
-            
-            print(f"Starting image processing for file_id: {file_id}")
-            
-            # Process image using the image processor
-            result = image_processor.process_telegram_image(file_id, chat_id)
-            
-            if result:
-                print(f"Image processing completed successfully for chat {chat_id}")
-            else:
-                print(f"Image processing failed for chat {chat_id}")
+            try:
+                photo = message['photo'][-1]  # Get the largest photo
+                file_id = photo['file_id']
+                
+                print(f"Starting image processing for file_id: {file_id}")
+                
+                # Send initial response to user
+                telegram_api.send_message(chat_id, "🔄 Processing your image... Please wait.")
+                
+                # Process image using the image processor
+                result = image_processor.process_telegram_image(file_id, chat_id)
+                
+                if result:
+                    print(f"Image processing completed successfully for chat {chat_id}")
+                else:
+                    print(f"Image processing failed for chat {chat_id}")
+                    telegram_api.send_message(chat_id, "❌ Failed to process image. Please try again with a different image.")
+                    
+            except Exception as e:
+                print(f"Error processing photo: {e}")
+                telegram_api.send_message(chat_id, f"❌ Error processing image: {str(e)}")
         
         return jsonify({'status': 'ok'})
         
     except Exception as e:
         print(f"Webhook error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 def get_admin_stats():
