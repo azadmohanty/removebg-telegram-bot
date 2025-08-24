@@ -47,11 +47,6 @@ def webhook():
                     "🤖 I'm your Background Remover Bot\n"
                     "📸 Upload an image and I'll remove its background\n\n"
                     "Created with 💖 by Team A.co\n\n"
-                    "✨ Features:\n"
-                    "• Background removal\n"
-                    "• User analytics\n"
-                    "• Admin controls\n"
-                    "• Webhook support"
                 )
             elif text == '/help':
                 response_text = (
