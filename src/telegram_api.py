@@ -52,9 +52,14 @@ class TelegramAPI:
         url = f"{self.base_url}/getFile"
         data = {'file_id': file_id}
         
+        print(f"TelegramAPI: Getting file info for file_id: {file_id}")
+        print(f"TelegramAPI: URL: {url}")
+        
         try:
             response = requests.post(url, json=data)
+            print(f"TelegramAPI: getFile response status: {response.status_code}")
             result = response.json()
+            print(f"TelegramAPI: getFile response: {result}")
             if result.get('ok'):
                 return result['result']
             return None
@@ -66,10 +71,16 @@ class TelegramAPI:
         """Download a file from Telegram"""
         file_url = f"https://api.telegram.org/file/bot{Config.TELEGRAM_BOT_TOKEN}/{file_path}"
         
+        print(f"TelegramAPI: Downloading file from: {file_url}")
+        
         try:
             response = requests.get(file_url)
+            print(f"TelegramAPI: download_file response status: {response.status_code}")
             if response.status_code == 200:
+                print(f"TelegramAPI: Downloaded file successfully, size: {len(response.content)} bytes")
                 return response.content
+            else:
+                print(f"TelegramAPI: Failed to download file, status: {response.status_code}")
             return None
         except Exception as e:
             print(f"Error downloading file: {e}")

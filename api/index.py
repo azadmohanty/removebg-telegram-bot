@@ -27,6 +27,9 @@ def webhook():
         if not update_data:
             return jsonify({'error': 'No data received'}), 400
         
+        # Debug logging
+        print(f"Received webhook data: {update_data}")
+        
         # Extract message information
         message = update_data.get('message', {})
         callback_query = update_data.get('callback_query', {})
@@ -39,6 +42,12 @@ def webhook():
         chat_id = message.get('chat', {}).get('id')
         text = message.get('text', '')
         user = message.get('from', {})
+        
+        # Debug logging for message type
+        if message.get('photo'):
+            print(f"Processing photo message from chat {chat_id}")
+        elif text:
+            print(f"Processing text message: '{text}' from chat {chat_id}")
         
         # Save user to storage and check if new user
         if user:
@@ -127,8 +136,15 @@ def webhook():
             photo = message['photo'][-1]  # Get the largest photo
             file_id = photo['file_id']
             
+            print(f"Starting image processing for file_id: {file_id}")
+            
             # Process image using the image processor
-            image_processor.process_telegram_image(file_id, chat_id)
+            result = image_processor.process_telegram_image(file_id, chat_id)
+            
+            if result:
+                print(f"Image processing completed successfully for chat {chat_id}")
+            else:
+                print(f"Image processing failed for chat {chat_id}")
         
         return jsonify({'status': 'ok'})
         
