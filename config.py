@@ -13,7 +13,7 @@ class Config:
     # Bot Configuration
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     REMOVE_BG_API_KEY = os.getenv("REMOVE_BG_API_KEY")
-    ADMIN_USER_ID = os.getenv("ADMIN_USER_ID", "6995765141")
+    ADMIN_USER_ID = os.getenv("ADMIN_USER_ID")
     
     # Firebase Configuration
     FIREBASE_DATABASE_URL = os.getenv("FIREBASE_DATABASE_URL")
