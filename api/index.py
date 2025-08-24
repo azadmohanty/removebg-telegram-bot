@@ -366,6 +366,40 @@ def health_check():
         'bot_name': Config.BOT_NAME
     })
 
+@app.route('/test', methods=['GET'])
+def test():
+    """Test endpoint to verify bot configuration"""
+    try:
+        # Test configuration
+        config_status = {
+            'bot_token': '✅ Set' if Config.TELEGRAM_BOT_TOKEN else '❌ Missing',
+            'remove_bg_key': '✅ Set' if Config.REMOVE_BG_API_KEY else '❌ Missing',
+            'admin_id': '✅ Set' if Config.ADMIN_USER_ID else '❌ Missing',
+            'firebase_url': '✅ Set' if Config.FIREBASE_DATABASE_URL else '❌ Missing'
+        }
+        
+        # Test storage
+        storage_status = storage.get_storage_status()
+        
+        # Test Telegram API
+        bot_info = telegram_api.get_me()
+        telegram_status = '✅ Connected' if bot_info else '❌ Failed'
+        
+        return jsonify({
+            'status': 'Bot Test Results',
+            'configuration': config_status,
+            'storage': storage_status,
+            'telegram_api': telegram_status,
+            'bot_info': bot_info,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'Error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 @app.route('/', methods=['GET'])
 def home():
     """Home endpoint"""
