@@ -100,7 +100,8 @@ def remove_background(image_data):
         files = {"image_file": image_data}
         api_url = "https://api.remove.bg/v1.0/removebg"
         
-        response = requests.post(api_url, headers=headers, files=files, timeout=30)
+        # Add shorter timeout to prevent hanging
+        response = requests.post(api_url, headers=headers, files=files, timeout=15)
         
         if response.status_code == 200:
             return response.content
@@ -108,6 +109,9 @@ def remove_background(image_data):
             print(f"Remove.bg API error: {response.status_code} - {response.text}")
             return None
             
+    except requests.exceptions.Timeout:
+        print("Remove.bg API timeout - request took too long")
+        return None
     except Exception as e:
         print(f"Error in remove.bg API: {e}")
         return None
@@ -375,34 +379,41 @@ def webhook():
                 
                 # Get file information
                 print(f"Step 1 - Getting file info...")
+                send_message(chat_id, "📁 Step 1/5: Getting file information...")
                 file_info = get_file(file_id)
                 if not file_info:
                     print(f"Failed to get file info for file_id: {file_id}")
                     send_message(chat_id, "❌ Failed to get image file")
+                    return jsonify({'status': 'ok'})  # Exit early on failure
                 else:
                     print(f"Got file info: {file_info}")
                     
                     # Download image
                     print(f"Step 2 - Downloading image...")
+                    send_message(chat_id, "📥 Step 2/5: Downloading image...")
                     image_data = download_file(file_info['file_path'])
                     if not image_data:
                         print(f"Failed to download file from path: {file_info['file_path']}")
                         send_message(chat_id, "❌ Failed to download image")
+                        return jsonify({'status': 'ok'})  # Exit early on failure
                     else:
                         print(f"Downloaded image, size: {len(image_data)} bytes")
                         
                         # Remove background
                         print(f"Step 3 - Sending to remove.bg API...")
+                        send_message(chat_id, "🔧 Step 3/5: Removing background...")
                         try:
                             processed_image = remove_background(image_data)
                             if not processed_image:
                                 print(f"Failed to process image with remove.bg API")
                                 send_message(chat_id, "❌ Failed to process image with remove.bg API")
+                                return jsonify({'status': 'ok'})  # Exit early on failure
                             else:
                                 print(f"Background removed successfully, processed size: {len(processed_image)} bytes")
                                 
                                 # Create developer button keyboard
                                 print(f"Step 4 - Creating keyboard...")
+                                send_message(chat_id, "⌨️ Step 4/5: Preparing response...")
                                 try:
                                     developer_keyboard = create_inline_keyboard([
                                         [
@@ -421,6 +432,7 @@ def webhook():
                                 
                                 # Send processed image back with developer buttons
                                 print(f"Step 5 - Sending processed image back to chat {chat_id}")
+                                send_message(chat_id, "📤 Step 5/5: Sending result...")
                                 try:
                                     result = send_photo(
                                         chat_id, 
@@ -431,6 +443,7 @@ def webhook():
                                     
                                     if result:
                                         print(f"Image sent successfully to chat {chat_id}")
+                                        send_message(chat_id, "✅ **Background removal completed successfully!** 🎉")
                                     else:
                                         print(f"Failed to send image to chat {chat_id}")
                                         send_message(chat_id, "❌ Failed to send processed image")
@@ -442,6 +455,7 @@ def webhook():
                         except Exception as e:
                             print(f"Error in remove.bg API call: {e}")
                             send_message(chat_id, f"❌ Error calling remove.bg API: {str(e)}")
+                            return jsonify({'status': 'ok'})  # Exit early on failure
                     
             except Exception as e:
                 print(f"Error processing photo: {e}")
